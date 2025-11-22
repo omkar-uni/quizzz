@@ -1,189 +1,138 @@
-import { useEffect, useState } from "react";
-import TestSelectionPage from "./components/TestSelectionPage";
-import StudentInfoForm from "./components/StudentInfoForm";
-import PreTestPage from "./components/PreTestPage";
-import QuizCard from "./components/QuizCard";
-import Timer from "./components/Timer";
-import Certificate from "./components/Certificate";
-import PostTestReview from "./components/PostTestReview";
-import Leaderboard from "./components/Leaderboard";
-import ReadyPage from "./components/ReadyPage";
+// src/App.jsx
+import { Route, Routes, useLocation } from "react-router-dom";
 
-import { tests } from "./data/tests";
-import { saveResult } from "./utils/leaderboard";
+import HomePage from "./pages/HomePage";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import TestSelectionPage from "./components/TestSelectionPage";
+import Leaderboard from "./components/Leaderboard";
+import Login from "./pages/Login";
+import Registration from "./pages/Registration";
+import StudentInfoForm from "./components/StudentInfoForm";
+import QuizPage from "./pages/QuizPage";
+import ReviewPage from "./pages/ReviewPage";
+import ResultPage from "./pages/ResultPage";
+import StudentDashboard from "./pages/StudentDashboard";
+import AdminLogin from "./admin/AdminLogin";
+import AdminRoute from "./admin/AdminRoute";
+import AdminDashboard from "./admin/AdminDashboard";
+import AdminManageTests from "./admin/AdminManageTests";
+import AdminQuestionBank from "./admin/AdminQuestionBank";
+import AdminStudents from "./admin/AdminStudents";
+import AdminResults from "./admin/AdminResults";
+import AdminManageQuestions from "./admin/AdminManageQuestions";
+import AdminStudentDetails from "./admin/AdminStudentDetails";
+import AdminReviewAttempt from "./admin/AdminReviewAttempt";
 
 export default function App() {
-  const [screen, setScreen] = useState("intro");
-  // intro → testSelect → student → ready → quiz → result
+  const location = useLocation();
 
-  const [selectedTest, setSelectedTest] = useState(null);
-  const [student, setStudent] = useState(null);
-
-  const [index, setIndex] = useState(0);
-  const [time, setTime] = useState(15);
-  const [score, setScore] = useState(0);
-  const [answers, setAnswers] = useState([]);
-  const [finished, setFinished] = useState(false);
-
-  const [startTime, setStartTime] = useState(null);
-
-  const questions = selectedTest ? tests[selectedTest].questions : [];
-
-  // TIMER logic
-  useEffect(() => {
-    if (screen !== "quiz" || finished) return;
-
-    if (time === 0) nextQuestion();
-
-    const interval = setInterval(() => setTime((t) => t - 1), 1000);
-    return () => clearInterval(interval);
-  }, [time, screen, finished]);
-
-  const onAnswer = (opt) => {
-    setAnswers((prev) => [...prev, opt]);
-    if (opt === questions[index].answer) setScore((s) => s + 1);
-    nextQuestion();
-  };
-
-  const nextQuestion = () => {
-    if (index + 1 < questions.length) {
-      setIndex((i) => i + 1);
-      setTime(15);
-    } else {
-      finishTest();
-    }
-  };
-
-  const finishTest = () => {
-    setFinished(true);
-
-    const end = Date.now();
-    const timeTakenSeconds = startTime
-      ? Math.round((end - startTime) / 1000)
-      : 0;
-
-    saveResult({
-      name: student?.name || "Unknown",
-      grade: student?.grade || "",
-      testName: tests[selectedTest]?.name || "Unknown Test",
-      score,
-      total: questions.length,
-      timeTaken: timeTakenSeconds,
-    });
-
-    setScreen("result");
-  };
-
-  const restart = () => {
-    setScreen("intro");
-    setSelectedTest(null);
-    setStudent(null);
-    setFinished(false);
-    setIndex(0);
-    setAnswers([]);
-    setScore(0);
-    setTime(15);
-    setStartTime(null);
-  };
+  // Hide Header + Footer on quiz route
+  const hideLayout =
+    location.pathname.startsWith("/quiz") ||
+    location.pathname.startsWith("/student-form") ||
+    location.pathname.startsWith("/ready");
 
   return (
-    <div className="min-h-screen w-full p-4 text-white">
-      {/* 1️⃣ PrePage */}
-      {screen === "intro" && (
-        <PreTestPage
-          onStart={() => setScreen("testSelect")}
-          testName="Welcome To Skill Test"
+    <>
+      {!hideLayout && <Header />}
+
+      <Routes>
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+
+        {/* Home */}
+        <Route path="/" element={<HomePage />} />
+
+        {/* Auth */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Registration />} />
+
+       
+
+        {/* Test Select */}
+        <Route path="/select-test" element={<TestSelectionPage />} />
+
+        {/* Leaderboard */}
+        <Route path="/leaderboard" element={<Leaderboard />} />
+
+        {/* Correct route */}
+        <Route path="/student-form/:testId" element={<StudentInfoForm />} />
+
+        {/* QUIZ PAGE (no Header/Footer) */}
+        <Route path="/quiz/:testId" element={<QuizPage />} />
+        <Route path="/review/:testId" element={<ReviewPage />} />
+        <Route path="/result/:testId" element={<ResultPage />} />
+
+        {/* admin routes  */}
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            // <AdminRoute>
+            <AdminDashboard />
+            // </AdminRoute>
+          }
         />
-      )}
-
-      {/* 2️⃣ Select Test */}
-      {screen === "testSelect" && (
-        <TestSelectionPage
-          onSelect={(testId) => {
-            setSelectedTest(testId);
-            setScreen("student");
-          }}
+        <Route
+          path="/admin/tests"
+          element={
+            // <AdminRoute>
+            <AdminManageTests />
+            // </AdminRoute>
+          }
         />
-      )}
-
-      {/* 3️⃣ Student Details */}
-      {screen === "student" && (
-        <StudentInfoForm
-          onSubmit={(data) => {
-            setStudent(data);
-            setScreen("ready");
-          }}
+        <Route
+          path="/admin/questions"
+          element={
+            // <AdminRoute>
+            <AdminQuestionBank />
+            // </AdminRoute>
+          }
         />
-      )}
-
-      {/* 4️⃣ Ready Page → Direct Quiz */}
-      {screen === "ready" && (
-        <ReadyPage
-          testName={tests[selectedTest]?.name || "Selected Test"}
-          onYes={() => {
-            setStartTime(Date.now());
-            setScreen("quiz");
-          }}
-          onNo={() => setScreen("testSelect")}
+        <Route
+          path="/admin/students"
+          element={
+            // <AdminRoute>
+            <AdminStudents />
+            // </AdminRoute>
+          }
         />
-      )}
-
-      {/* 5️⃣ Quiz Page */}
-      {screen === "quiz" && (
-        <div className="max-w-xl mx-auto space-y-6">
-          <div className="flex justify-between">
-            <h2>
-              Question {index + 1}/{questions.length}
-            </h2>
-            <Timer time={time} />
-          </div>
-
-          <QuizCard q={questions[index]} onAnswer={onAnswer} />
-        </div>
-      )}
-
-      {/* 6️⃣ Result */}
-      {screen === "result" && (
-        <div className="max-w-xl mx-auto space-y-6 text-center">
-          <Certificate score={score} total={questions.length} />
-
-          <button
-            onClick={() => setScreen("review")}
-            className="p-3 w-full bg-green-600 rounded-xl"
-          >
-            Review Test
-          </button>
-
-          <button
-            onClick={() => setScreen("leaderboard")}
-            className="p-3 w-full bg-yellow-600 rounded-xl"
-          >
-            Leaderboard
-          </button>
-
-          <button
-            onClick={restart}
-            className="p-3 w-full bg-blue-600 rounded-xl"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* 7️⃣ Review */}
-      {screen === "review" && (
-        <PostTestReview
-          questions={questions}
-          answers={answers}
-          onBack={() => setScreen("result")}
-          onRestart={restart}
+        <Route
+          path="/admin/results"
+          element={
+            // <AdminRoute>
+            <AdminResults />
+            // </AdminRoute>
+          }
         />
-      )}
+        <Route
+          path="/admin/tests/:testId/questions"
+          element={
+            // <AdminRoute>
+            <AdminManageQuestions />
+            //</AdminRoute>
+          }
+        />
 
-      {/* 8️⃣ Leaderboard */}
-      {screen === "leaderboard" && (
-        <Leaderboard onBack={() => setScreen("result")} />
-      )}
-    </div>
+        <Route
+          path="/admin/students/:id"
+          element={
+            // <AdminRoute>
+            <AdminStudentDetails />
+            // </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/review/:attemptId"
+          element={
+            // <AdminRoute>
+            <AdminReviewAttempt />
+            // </AdminRoute>
+          }
+        />
+      </Routes>
+
+      {!hideLayout && <Footer />}
+    </>
   );
 }

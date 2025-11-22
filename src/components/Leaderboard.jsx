@@ -14,7 +14,6 @@ export default function Leaderboard({ onBack }) {
       const res = await fetch("http://localhost:3000/api/getLeaderboard");
       const data = await res.json();
 
-      // Sorting
       if (sortType === "score") {
         data.sort((a, b) => b.score - a.score);
       } else {
@@ -43,69 +42,78 @@ export default function Leaderboard({ onBack }) {
   const testTypes = [...new Set(results.map((r) => r.testName))];
 
   return (
-    <div className="w-full min-h-screen p-4 text-white">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Title */}
-        <h1 className="text-3xl md:text-4xl font-extrabold text-center">
-          🏆 Leaderboard
-        </h1>
+    <div className="w-full min-h-screen p-6 md:p-10 text-white">
+      <div className="max-w-7xl mx-auto space-y-10">
+        {/* ===== Title + Back Button ===== */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold">
+            🏆 Leaderboard
+          </h1>
 
-        {/* Back button */}
-        <div className="flex justify-start">
           <button
             onClick={onBack}
-            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md font-semibold"
+            className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg font-semibold"
           >
             ⬅ Back
           </button>
         </div>
 
-        {/* Filters Section */}
+        {/* ===== Filters Section ===== */}
         <div
           className="
-          bg-white/10 rounded-xl p-4 flex flex-col md:flex-row 
-          gap-4 md:items-center border border-white/20 shadow-sm
-        "
+            bg-white/10 backdrop-blur-xl border border-white/20
+            rounded-2xl p-6 shadow-md
+            flex flex-col md:flex-row gap-6 md:items-center
+          "
         >
-          {/* Search */}
+          {/* Search (Smaller UI) */}
           <input
-            placeholder="Search by name..."
-            className="
-              p-2 rounded-lg bg-white/5 border border-white/20
-              text-white placeholder-white/60 w-full focus:outline-none
-              focus:ring-2 focus:ring-blue-400
-            "
+            placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="
+              px-3 py-2
+              rounded-lg
+              bg-white/5
+              border border-white/10
+              text-white
+              placeholder-white/50
+              w-full
+              text-sm
+              focus:outline-none
+              focus:ring-1 focus:ring-blue-400
+            "
           />
 
           {/* Test Filter */}
           <select
-            className="
-              p-2 rounded-lg bg-white/5 border border-white/20 text-white
-              focus:outline-none focus:ring-2 focus:ring-blue-400
-            "
             value={testFilter}
             onChange={(e) => setTestFilter(e.target.value)}
+            className="
+              px-3 py-2 rounded-lg bg-white/5 border border-white/20
+              text-white text-sm
+              focus:outline-none focus:ring-1 focus:ring-blue-400
+            "
           >
             <option value="All" className="text-black">
               All Tests
             </option>
             {testTypes.map((t, i) => (
-              <option className="text-black" key={i} value={t}>
+              <option key={i} value={t} className="text-black">
                 {t}
               </option>
             ))}
           </select>
 
-          {/* Sorting */}
+          {/* Sort */}
           <select
-            className="
-              p-2 rounded-lg bg-white/5 border border-white/20 text-white
-              focus:outline-none focus:ring-2 focus:ring-blue-400
-            "
             value={sortType}
             onChange={(e) => setSortType(e.target.value)}
+            className="
+              px-3 py-2 rounded-lg bg-white/5 border border-white/20
+              text-white text-sm
+              focus:outline-none focus:ring-1 focus:ring-blue-400
+            "
           >
             <option value="score" className="text-black">
               Sort by Score (High → Low)
@@ -116,39 +124,37 @@ export default function Leaderboard({ onBack }) {
           </select>
         </div>
 
-        {/* Loading */}
+        {/* ===== Loading ===== */}
         {loading && (
-          <p className="text-center text-white/70">Loading leaderboard...</p>
+          <p className="text-center text-white/70 text-lg">
+            Loading leaderboard...
+          </p>
         )}
 
-        {/* No Results */}
+        {/* ===== No Results ===== */}
         {!loading && filteredResults.length === 0 && (
           <p className="text-center text-white/70 text-lg">
             No matching entries found.
           </p>
         )}
 
-        {/* Table */}
+        {/* ===== Table Full Screen ===== */}
         {!loading && filteredResults.length > 0 && (
           <div
             className="
-              overflow-x-auto bg-white/10 backdrop-blur-xl 
-              border border-white/20 rounded-2xl p-4 md:p-6 shadow-md
+              bg-white/10 backdrop-blur-xl border border-white/20
+              rounded-2xl shadow-2xl p-6
+              overflow-x-auto w-full
             "
           >
-            <table className="w-full min-w-[700px] text-left">
+            <table className="w-full text-left min-w-[800px]">
               <thead>
-                <tr
-                  className="
-                  border-b border-white/20 text-xs md:text-sm 
-                  uppercase tracking-wide text-white/70
-                "
-                >
-                  <th className="py-3">Rank</th>
-                  <th className="py-3">Name</th>
-                  <th className="py-3">Test</th>
-                  <th className="py-3">Score</th>
-                  <th className="py-3">Time</th>
+                <tr className="border-b border-white/20 text-white/70 uppercase text-xs md:text-sm">
+                  <th className="py-4">Rank</th>
+                  <th className="py-4">Name</th>
+                  <th className="py-4">Test</th>
+                  <th className="py-4">Score</th>
+                  <th className="py-4">Time</th>
                 </tr>
               </thead>
 
@@ -157,23 +163,23 @@ export default function Leaderboard({ onBack }) {
                   <tr
                     key={i}
                     className="
-                      border-b border-white/10 text-xs md:text-base
+                      border-b border-white/10
                       hover:bg-white/5 transition-all duration-300
+                      text-sm md:text-base
                     "
                     style={{
-                      animation: `fadeIn 0.5s ease ${i * 0.05}s`,
+                      animation: `fadeIn 0.4s ease ${i * 0.03}s`,
                     }}
                   >
-                    <td className="py-3 font-bold">
+                    <td className="py-4 font-bold">
                       {i < 3 ? medals[i] : `#${i + 1}`}
                     </td>
-
-                    <td className="py-3">{r.name}</td>
-                    <td className="py-3">{r.testName}</td>
-                    <td className="py-3">
+                    <td className="py-4">{r.name}</td>
+                    <td className="py-4">{r.testName}</td>
+                    <td className="py-4">
                       {r.score} / {r.total}
                     </td>
-                    <td className="py-3">{r.timeTaken}s</td>
+                    <td className="py-4">{r.timeTaken}s</td>
                   </tr>
                 ))}
               </tbody>
@@ -193,3 +199,4 @@ export default function Leaderboard({ onBack }) {
     </div>
   );
 }
+  
